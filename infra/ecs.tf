@@ -48,7 +48,15 @@ resource "aws_ecs_task_definition" "mc_server" {
         },
         {
           "name" : "VERSION",
-          "value" : "LATEST"
+          "value" : aws_ssm_parameter.version.value
+        },
+        {
+          "name": "TYPE",
+          "value": aws_ssm_parameter.type.value
+        },
+        {
+          "name": "MODRINTH_MODPACK",
+          "value": aws_ssm_parameter.modpack_url.value
         }
       ]
       mountPoints = [
