@@ -1,9 +1,9 @@
-resource "aws_security_group" "minecraft_server" {
-  name   = "minecraft_server"
+resource "aws_security_group" "minecraft" {
+  name   = "minecraft"
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    description = "minecraft_server"
+    description = "minecraft"
     from_port   = 25565
     to_port     = 25565
     protocol    = "tcp"
@@ -19,17 +19,17 @@ resource "aws_security_group" "minecraft_server" {
   }
 }
 
-resource "aws_ecs_task_definition" "minecraft_server" {
+resource "aws_ecs_task_definition" "mc_server" {
   cpu                      = "2048"
   memory                   = "4096"
-  family                   = "minecraft-server"
+  family                   = "minecraft"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecs_tasks_execution_role.arn
   container_definitions = jsonencode([
     {
-      name       = "minecraft-server"
-      image      = aws_ecr_repository.minecraft.repository_url
+      name       = "mc-server"
+      image      = "itzg/minecraft-server:java17-alpine" 
       essential  = true
       tty        = true
       stdin_open = true
@@ -48,7 +48,7 @@ resource "aws_ecs_task_definition" "minecraft_server" {
         },
         {
           "name" : "VERSION",
-          "value" : "1.20.1"
+          "value" : "LATEST"
         }
       ]
       mountPoints = [
@@ -64,18 +64,18 @@ resource "aws_ecs_task_definition" "minecraft_server" {
   }
 }
 
-resource "aws_ecs_cluster" "minecraft_server" {
-  name = "minecraft_server"
+resource "aws_ecs_cluster" "minecraft" {
+  name = "minecraft"
 }
 
-resource "aws_ecs_service" "minecraft_server" {
-  name            = "minecraft_server"
-  cluster         = aws_ecs_cluster.minecraft_server.id
-  task_definition = aws_ecs_task_definition.minecraft_server.arn
+resource "aws_ecs_service" "mc_server" {
+  name            = "mc_server"
+  cluster         = aws_ecs_cluster.minecraft.id
+  task_definition = aws_ecs_task_definition.mc_server.arn
   desired_count   = 1
   network_configuration {
     subnets          = module.vpc.public_subnets
-    security_groups  = [aws_security_group.minecraft_server.id]
+    security_groups  = [aws_security_group.minecraft.id]
     assign_public_ip = true
   }
   launch_type = "FARGATE"
