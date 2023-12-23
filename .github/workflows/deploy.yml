@@ -21,24 +21,5 @@ jobs:
                 aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                 aws-region: sa-east-1
                 
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v2
-    
-            - name: Build, tag, and push image to Amazon ECR
-              env:
-                ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-                ECR_REPOSITORY: minecraft
-                IMAGE_TAG: ${{ github.sha }}
-              run: |
-                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-                docker tag $ECR_REGISTRY/$ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-                docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-                docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-            - name: Logout of Amazon ECR
-              if: always()
-              run: docker logout ${{ steps.login-ecr.outputs.registry }}
-
             - name: Restart ECS Instance
-              run: aws ecs update-service --cluster minecraft_server --service minecraft_server --force-new-deployment --region sa-east-1
+              run: aws ecs update-service --cluster minecraft --service mc_server --force-new-deployment --region sa-east-1
